@@ -125,6 +125,7 @@ async def main():
         name='web_search_agent',
         description='An agent who can search the web to conduct research and answer open questions',
         model_client=model_client,
+        system_message='You are an agent who can search the web to conduct research and answer open questions.  You can use the bing tool to search the internet for information.  You should return a list of entries with text, url, and title for each entry. Never reply with Terminate, just return the list of entries.',
         tools=[get_bing_snippet]
     )
 
