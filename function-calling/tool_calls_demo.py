@@ -100,6 +100,7 @@ example_prompts = [
 
 # --- Choose one to test ---
 selected_prompt = example_prompts[4]  # Change to [1] or [2] or [3] or [4]
+print("Selected Prompt:", selected_prompt)
 
 chat_prompt = [
     {
@@ -124,7 +125,7 @@ assistant_response = completion.choices[0].message
 
 # --- Output response ---
 print("Assistant Response:\n", assistant_response.content)
-print("Tool Calls:\n", assistant_response.tool_calls)
+print("Tool Calls Emitted:", assistant_response.tool_calls)
 
 # --- Handle tool calls ---
 if assistant_response.tool_calls:
