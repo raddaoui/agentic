@@ -50,32 +50,6 @@ BASE_PROMPT = [
     {"role": "user", "content": "what is the weather in New York?"},
 ]
 
-
-def sync_openai_call(
-    messages: List[Dict[str, Any]],
-    tools: List[Dict[str, Any]],
-    tool_choice: str,
-) -> Any:
-    return azure_client.chat.completions.create(
-        model=AZURE_DEPLOYMENT,
-        messages=messages,
-        tools=tools,
-        tool_choice=tool_choice,
-    )
-
-
-async def call_openai_with_tools(
-    messages: List[Dict[str, Any]],
-    tools: List[Dict[str, Any]],
-    tool_choice: str = "auto"
-) -> Any:
-    loop = asyncio.get_event_loop()
-    resp = await loop.run_in_executor(
-        None, sync_openai_call, messages, tools, tool_choice
-    )
-    return resp
-
-
 async def convert_mcp_tools_to_openai(tools_obj: Any) -> List[Dict[str, Any]]:
     result = []
     for tool in getattr(tools_obj, "tools", []):
@@ -117,7 +91,12 @@ async def run():
 
             app_logger.info("Calling OpenAI with tool_choice=auto …")
             try:
-                completion = await call_openai_with_tools(messages, openai_tools, "auto")
+                completion = azure_client.chat.completions.create(
+                model=AZURE_DEPLOYMENT,
+                messages=messages,
+                tools=openai_tools,
+                tool_choice="auto",
+            )
             except Exception as e:
                 logger.error("OpenAI call failed: %s", e)
                 return
@@ -139,7 +118,7 @@ async def run():
 
                     app_logger.info("Invoking MCP tool '%s' with args: %s", fname, args)
                     try:
-                        tool_result = await session.call_tool(fname, arguments=args)
+                        tool_result = await session.call_tool(fname,arguments=args)
                         app_logger.info("Result from tool '%s': %s", fname, tool_result)
                     except Exception as e:
                         logger.error("Tool call %s failed: %s", fname, e)
@@ -155,7 +134,12 @@ async def run():
 
                 app_logger.info("Calling OpenAI final completion")
                 try:
-                    final_completion = await call_openai_with_tools(messages, openai_tools, "auto")
+                    final_completion = azure_client.chat.completions.create(
+                    model=AZURE_DEPLOYMENT,
+                    messages=messages,
+                    tools=openai_tools,
+                    tool_choice="auto",
+                )
                     final_msg = final_completion.choices[0].message
                     app_logger.info("Final assistant reply: %s", final_msg.content)
                 except Exception as e:
